@@ -1,35 +1,53 @@
-import { useState, useEffect, useCallback } from 'react'
-import customers from '../data/customers.json'
-import { useFilters } from '@/context/filterContext'
-import { User } from '@/types/User'
+import { useState, useEffect, useCallback } from 'react';
+import customers from '../data/customers.json';
+import { useFilters } from '@/context/filterContext';
+import { User } from '@/types/User';
 
 const useUserList = () => {
-	const { filters } = useFilters()
-	const [users, setUsers] = useState<User[]>([])
-	const [loadIndex, setLoadIndex] = useState(0)
-	const pageSize = 20
+    const { filters } = useFilters();
+    const [users, setUsers] = useState<User[]>([]);
+    const [loadIndex, setLoadIndex] = useState(0);
+    const [error, setError] = useState<string | null>(null);
+    const pageSize = 20;
 
-	const applyFilters = useCallback(() => {
-		return customers.filter(user => {
-			const fullName = `${user.firstName} ${user.lastName}`.toLowerCase()
-			const matchesName = !filters.name || fullName.includes(filters.name.toLowerCase())
-			const matchesGender = !filters.gender || user.gender.toLowerCase() === filters.gender.toLowerCase()
-			const matchesCountry = !filters.country || user.country.toLowerCase().includes(filters.country.toLowerCase())
+    const applyFilters = useCallback(() => {
+        return customers.filter(user => {
+            const fullName = `${user.firstName} ${user.lastName}`.toLowerCase();
+            const matchesName =
+                !filters.name || fullName.includes(filters.name.toLowerCase());
+            const matchesGender =
+                !filters.gender ||
+                user.gender.toLowerCase() === filters.gender.toLowerCase();
+            const matchesCountry =
+                !filters.country ||
+                user.country
+                    .toLowerCase()
+                    .includes(filters.country.toLowerCase());
 
-			return matchesName && matchesGender && matchesCountry
-		})
-	}, [filters])
+            return matchesName && matchesGender && matchesCountry;
+        });
+    }, [filters]);
 
-	useEffect(() => {
-		const filteredUsers = applyFilters()
-		setUsers(filteredUsers.slice(0, pageSize * (loadIndex + 1)))
-	}, [applyFilters, loadIndex])
+    useEffect(() => {
+        try {
+            const filteredUsers = applyFilters();
+            setUsers(filteredUsers.slice(0, pageSize * (loadIndex + 1)));
+            setError(null);
+        } catch (err) {
+            setError('Произошла ошибка при загрузке данных.');
+        }
+    }, [applyFilters, loadIndex]);
 
-	const loadMoreUsers = () => {
-		setLoadIndex(prevLoadIndex => prevLoadIndex + 1)
-	}
+    useEffect(() => {
+        const filteredUsers = applyFilters();
+        setUsers(filteredUsers.slice(0, pageSize * (loadIndex + 1)));
+    }, [applyFilters, loadIndex]);
 
-	return { users, loadMoreUsers }
-}
+    const loadMoreUsers = () => {
+        setLoadIndex(prevLoadIndex => prevLoadIndex + 1);
+    };
 
-export default useUserList
+    return { users, loadMoreUsers, error };
+};
+
+export default useUserList;
