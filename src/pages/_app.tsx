@@ -1,6 +1,14 @@
-import '@/styles/globals.css'
-import type { AppProps } from 'next/app'
+import React from 'react'
+import { AppProps } from 'next/app'
+import { FilterProvider } from '@/context/filterContext'
+import '../styles/globals.css'
 
-export default function App({ Component, pageProps }: AppProps) {
-  return <Component {...pageProps} />
+const MyApp = ({ Component, pageProps }: AppProps) => {
+	return (
+		<FilterProvider>
+			<Component {...pageProps} />
+		</FilterProvider>
+	)
 }
+
+export default MyApp
